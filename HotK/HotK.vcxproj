@@ -116,11 +116,13 @@
     <ClCompile Include="graphics\errors.cpp" />
     <ClCompile Include="graphics\graphics.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="utils\winutils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h" />
     <ClInclude Include="graphics\errors.h" />
     <ClInclude Include="graphics\graphics.h" />
+    <ClInclude Include="utils\winutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

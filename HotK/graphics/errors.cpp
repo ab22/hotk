@@ -2,20 +2,20 @@
 
 using namespace hotk::graphics;
 
-#pragma region GDIStartupError
+#pragma region GraphicsInitError
 
-GDIStartupError::GDIStartupError() noexcept
+GraphicsInitError::GraphicsInitError() noexcept
 	: ErrorCode()
 {
 
 }
 
-GDIStartupError::GDIStartupError(int code, const char* message) noexcept
+GraphicsInitError::GraphicsInitError(int code, const char* message) noexcept
 	: ErrorCode(code, message)
 {
 }
 
-GDIStartupError::GDIStartupError(int  code, std::string& message) noexcept
+GraphicsInitError::GraphicsInitError(int  code, std::string& message) noexcept
 	: ErrorCode(code, message)
 {
 

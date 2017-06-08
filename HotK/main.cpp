@@ -15,14 +15,14 @@ int main()
 		graphics::Graphics g;
 
 		std::cout << "Capturing Screen...\n";
-		HBITMAP hbScreen = g.capture_screen();
+		auto screen_hbitmap = g.capture_screen();
 
 		std::cout << "Saving to file..\n";
-		g.save_bitmap_to_file(L"Screenshot.bmp", hbScreen);
+		g.save_bitmap_to_file(L"Screenshot.bmp", screen_hbitmap.get());
 
 		std::cout << "Done! Have a good day commander!\n";
 	}
-	catch (errors::ErrorCode &err) {
+	catch (const errors::ErrorCode &err) {
 		std::cout << "Unhandled error caught:\n"
 			<< "   code: " << err.code() << "\n"
 			<< "message: " << err.what() << "\n";

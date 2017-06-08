@@ -5,11 +5,11 @@
 
 namespace hotk {
 	namespace graphics {
-		class GDIStartupError : public hotk::errors::ErrorCode {
+		class GraphicsInitError : public hotk::errors::ErrorCode {
 		public:
-			GDIStartupError() noexcept;
-			GDIStartupError(int code, const char* message) noexcept;
-			GDIStartupError(int code, std::string& message) noexcept;
+			GraphicsInitError() noexcept;
+			GraphicsInitError(int code, const char* message) noexcept;
+			GraphicsInitError(int code, std::string& message) noexcept;
 		};
 
 		class EncoderClsIDError : public hotk::errors::ErrorCode {
