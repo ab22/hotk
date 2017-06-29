@@ -23,27 +23,6 @@ GraphicsInitError::GraphicsInitError(int  code, std::string& message) noexcept
 
 #pragma endregion
 
-#pragma region EncoderClsIDError
-
-EncoderClsIDError::EncoderClsIDError() noexcept
-	: ErrorCode()
-{
-
-}
-
-EncoderClsIDError::EncoderClsIDError(int code, const char* message) noexcept
-	: ErrorCode(code, message)
-{
-}
-
-EncoderClsIDError::EncoderClsIDError(int  code, std::string& message) noexcept
-	: ErrorCode(code, message)
-{
-
-}
-
-#pragma endregion
-
 #pragma region CaptureScreenError
 
 CaptureScreenError::CaptureScreenError() noexcept

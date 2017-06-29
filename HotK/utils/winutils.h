@@ -2,21 +2,16 @@
 
 #include <windows.h>
 
-namespace hotk {
-	namespace winutils {
-		namespace deleters {
-			struct HDCDeleter {
-				void operator()(HDC);
-			};
+namespace hotk::winutils::deleters {
+	struct HDCDeleter {
+		void operator()(HDC);
+	};
 
-			struct CompatibleDCDeleter {
-				void operator()(HDC);
-			};
+	struct CompatibleDCDeleter {
+		void operator()(HDC);
+	};
 
-			struct HBitmapDeleter {
-				void operator()(HBITMAP);
-			};
-		}
-	}
+	struct HBitmapDeleter {
+		void operator()(HBITMAP);
+	};
 }
-
