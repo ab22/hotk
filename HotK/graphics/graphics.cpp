@@ -7,20 +7,17 @@
 #include <iterator>
 
 using namespace hotk::graphics;
+using hotk::winutils::errors::Win32Error;
 
 inline void Graphics::build_device_contexts()
 {
-	using hdc_ptr = std::unique_ptr<HDC__, deleters::HDCDeleter>;
-	hdc = hdc_ptr(GetDC(nullptr));
-
+	hdc = std::unique_ptr<HDC__, HDCDeleter>(GetDC(nullptr));
 	if (hdc.get() == nullptr)
-		throw GraphicsInitError(GetLastError(), "graphics ctor: GetDC failed");
+		throw Win32Error(GetLastError(), "graphics ctor: GetDC failed");
 
-	using hdest_ptr = std::unique_ptr<HDC__, deleters::CompatibleDCDeleter>;
-	hDest = hdest_ptr(CreateCompatibleDC(hdc.get()));
-
+	hDest = std::unique_ptr<HDC__, CompatibleDCDeleter>(CreateCompatibleDC(hdc.get()));
 	if (hDest.get() == nullptr)
-		throw GraphicsInitError(GetLastError(), "graphics ctor: CreateCompatibleDC failed");
+		throw Win32Error(GetLastError(), "graphics ctor: CreateCompatibleDC failed");
 }
 
 Graphics::Graphics()
@@ -30,33 +27,33 @@ Graphics::Graphics()
 	this->build_device_contexts();
 }
 
-std::unique_ptr<HBITMAP__, deleters::HBitmapDeleter> Graphics::capture_screen() const
+std::unique_ptr<HBITMAP__, HBitmapDeleter> Graphics::capture_screen() const
 {
 	// Get screen dimensions.
 	int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	if (width == 0)
-		throw CaptureScreenError(GetLastError(), "capture screen error: failed to get screen width");
+		throw Win32Error(GetLastError(), "capture screen error: failed to get screen width");
 
 	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	if (height == 0)
-		throw CaptureScreenError(GetLastError(), "capture screen error: failed to get screen height");
+		throw Win32Error(GetLastError(), "capture screen error: failed to get screen height");
 
 	// Create the Bitmap.
 	HBITMAP handler = CreateCompatibleBitmap(hdc.get(), width, height);
-	auto bitmap_handler = std::unique_ptr<HBITMAP__, deleters::HBitmapDeleter>(handler);
+	auto bitmap_handler = std::unique_ptr<HBITMAP__, HBitmapDeleter>(handler);
 	if (handler == nullptr)
-		throw CaptureScreenError(GetLastError(), "capture screen error: CreateCompatibleBitmap failed");
+		throw Win32Error(GetLastError(), "capture screen error: CreateCompatibleBitmap failed");
 
 	// Use the previously created device context with the bitmap.
 	auto result = SelectObject(hDest.get(), handler);
 	if (result == NULL || result == HGDI_ERROR)
-		throw CaptureScreenError(GetLastError(), "capture screen error: SelectObject failed");
+		throw Win32Error(GetLastError(), "capture screen error: SelectObject failed");
 
 	// Copy from the desktop device context to the bitmap device context
 	// call this once per 'frame'.
 	auto bb_result = BitBlt(hDest.get(), 0, 0, width, height, hdc.get(), 0, 0, SRCCOPY);
 	if (bb_result == NULL)
-		throw CaptureScreenError(GetLastError(), "capture screen error: BitBlt failed");
+		throw Win32Error(GetLastError(), "capture screen error: BitBlt failed");
 
 	return bitmap_handler;
 }
@@ -67,7 +64,7 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(HBITMAP hbitmap)
 	auto   result = GetObject(hbitmap, sizeof(BITMAP), &bmp);
 
 	if (result == 0)
-		throw CaptureScreenError(GetLastError(), "capture screen error: could not GetObject");
+		throw Win32Error(GetLastError(), "capture screen error: could not GetObject");
 
 	auto bitmap_info = std::make_unique<BITMAPINFO>();
 	bitmap_info->bmiHeader.biSize         = sizeof(BITMAPINFOHEADER);
@@ -119,7 +116,7 @@ std::vector<byte> Graphics::to_vector(HBITMAP hbitmap)
 	);
 
 	if (result == 0)
-		throw CaptureScreenError(GetLastError(), "capture screen error: could not GetDIBits");
+		throw Win32Error(GetLastError(), "capture screen error: could not GetDIBits");
 
 	return bmp;
 }

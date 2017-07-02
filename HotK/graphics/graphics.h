@@ -2,30 +2,27 @@
 
 #include <windows.h>
 #include <memory>
-#include <gdiplus.h>
 #include <vector>
-#include "../errors/errors.h"
-#include "../utils/winutils.h"
+#include "../winutils/deleters.h"
+#include "../winutils/errors.h"
 #include "errors.h"
 
 namespace hotk::graphics {
-	namespace deleters = hotk::winutils::deleters;
+	using hotk::winutils::deleters::HDCDeleter;
+	using hotk::winutils::deleters::HBitmapDeleter;
+	using hotk::winutils::deleters::CompatibleDCDeleter;
 
 	class Graphics {
 	private:
-		using hdc_deleter = deleters::HDCDeleter;
-		using compatible_dc_deleter = deleters::CompatibleDCDeleter;
-		using hbitmap_deleter = hotk::winutils::deleters::HBitmapDeleter;
-
-		std::unique_ptr<HDC__, hdc_deleter>                 hdc;
-		std::unique_ptr<HDC__, compatible_dc_deleter>       hDest;
+		std::unique_ptr<HDC__, HDCDeleter>                 hdc;
+		std::unique_ptr<HDC__, CompatibleDCDeleter>       hDest;
 
 		inline void build_device_contexts();
 		std::unique_ptr<BITMAPINFO> create_bitmap_info(HBITMAP hbitmap);
 
 	public:
 		Graphics();
-		std::unique_ptr<HBITMAP__, hbitmap_deleter> capture_screen() const;
+		std::unique_ptr<HBITMAP__, HBitmapDeleter> capture_screen() const;
 		std::vector<byte> to_vector(HBITMAP hbitmap);
 	};
 }

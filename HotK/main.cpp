@@ -2,10 +2,10 @@
 #include <fstream>
 
 #include "errors/errors.h"
-#include "graphics/errors.h"
 #include "graphics/graphics.h"
 
-using namespace hotk;
+using hotk::graphics::Graphics;
+using hotk::errors::ErrorCode;
 
 int main()
 {
@@ -13,7 +13,7 @@ int main()
 
 	try {
 		std::cout << "Initializing graphics module...\n";
-		graphics::Graphics g;
+		Graphics g;
 
 		std::cout << "Capturing Screen...\n";
 		auto screen_hbitmap = g.capture_screen();
@@ -32,8 +32,7 @@ int main()
 
 		file.write((const char*)bitmap.data(), bitmap.size());
 		std::cout << "Done! Have a good day commander!\n";
-	}
-	catch (const errors::ErrorCode &err) {
+	} catch (const ErrorCode &err) {
 		std::cout << "Unhandled error caught:\n"
 			<< "   code: " << err.code() << "\n"
 			<< "message: " << err.what() << "\n";
