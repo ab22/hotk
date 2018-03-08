@@ -1,43 +1,43 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "errors/errors.h"
 #include "graphics/graphics.h"
 
-using hotk::graphics::Graphics;
 using hotk::errors::ErrorCode;
+using hotk::graphics::Graphics;
 
 int main()
 {
-	std::cout << "Starting program...\n";
+    std::cout << "Starting program...\n";
 
-	try {
-		std::cout << "Initializing graphics module...\n";
-		Graphics g;
+    try {
+        std::cout << "Initializing graphics module...\n";
+        Graphics g;
 
-		std::cout << "Capturing Screen...\n";
-		auto screen_hbitmap = g.capture_screen();
+        std::cout << "Capturing Screen...\n";
+        auto screen_hbitmap = g.capture_screen();
 
-		std::cout << "Grabbing image data...\n";
-		auto bitmap = g.to_vector(screen_hbitmap.get());
+        std::cout << "Grabbing image data...\n";
+        auto bitmap = g.to_vector(screen_hbitmap.get());
 
-		std::cout << "Saving to file..\n";
-		// g.save_bitmap_to_file(L"Screenshot.bmp", screen_hbitmap.get());
-		std::ofstream file("Screenshot.bmp", std::ios::binary);
+        std::cout << "Saving to file..\n";
+        // g.save_bitmap_to_file(L"Screenshot.bmp", screen_hbitmap.get());
+        std::ofstream file("Screenshot.bmp", std::ios::binary);
 
-		if (!file.is_open()) {
-			std::cout << "Error: could not create file!\n";
-			return 0;
-		}
+        if (!file.is_open()) {
+            std::cout << "Error: could not create file!\n";
+            return 0;
+        }
 
-		file.write((const char*)bitmap.data(), bitmap.size());
-		std::cout << "Done! Have a good day commander!\n";
-	} catch (const ErrorCode &err) {
-		std::cout << "Unhandled error caught:\n"
-			<< "   code: " << err.code() << "\n"
-			<< "message: " << err.what() << "\n";
-	}
+        file.write((const char*)bitmap.data(), bitmap.size());
+        std::cout << "Done! Have a good day commander!\n";
+    } catch (const ErrorCode& err) {
+        std::cout << "Unhandled error caught:\n"
+                  << "   code: " << err.code() << "\n"
+                  << "message: " << err.what() << "\n";
+    }
 
-	system("pause");
-	return 0;
+    system("pause");
+    return 0;
 }

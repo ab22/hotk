@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include "../errors/errors.h"
+#include <string>
 
 namespace hotk::winutils::errors {
 	class Win32Error : public hotk::errors::ErrorCode {
