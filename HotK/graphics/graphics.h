@@ -5,6 +5,7 @@
 #include "errors.h"
 #include <memory>
 #include <vector>
+#include <cstddef>
 #include <windows.h>
 
 namespace hotk::graphics {
@@ -23,6 +24,6 @@ namespace hotk::graphics {
 	public:
 		Graphics();
 		std::unique_ptr<HBITMAP__, HBitmapDeleter> capture_screen() const;
-		std::vector<byte> to_vector(HBITMAP hbitmap);
+		std::vector<std::byte> to_vector(HBITMAP hbitmap);
 	};
 }

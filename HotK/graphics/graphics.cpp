@@ -79,7 +79,7 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(HBITMAP hbitmap)
     return bitmap_info;
 }
 
-std::vector<byte> Graphics::to_vector(HBITMAP hbitmap)
+std::vector<std::byte> Graphics::to_vector(HBITMAP hbitmap)
 {
     auto bmi = create_bitmap_info(hbitmap);
 
@@ -90,16 +90,16 @@ std::vector<byte> Graphics::to_vector(HBITMAP hbitmap)
     bitmap_header.bfReserved2 = 0;
     bitmap_header.bfOffBits   = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize;
 
-    std::vector<byte> bmp;
+    std::vector<std::byte> bmp;
     bmp.reserve(bitmap_header.bfSize);
 
     std::copy(
-        (byte*)&bitmap_header,
-        (byte*)&bitmap_header + sizeof(BITMAPFILEHEADER),
+        (std::byte*)&bitmap_header,
+        (std::byte*)&bitmap_header + sizeof(BITMAPFILEHEADER),
         std::back_inserter(bmp));
     std::copy(
-        (byte*)&bmi->bmiHeader,
-        (byte*)&bmi->bmiHeader + sizeof(BITMAPINFOHEADER),
+        (std::byte*)&bmi->bmiHeader,
+        (std::byte*)&bmi->bmiHeader + sizeof(BITMAPINFOHEADER),
         std::back_inserter(bmp));
 
     bmp.resize(bitmap_header.bfSize);
