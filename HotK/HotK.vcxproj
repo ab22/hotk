@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errors\errors.cpp" />
+    <ClCompile Include="net\tcp_client.cpp" />
     <ClCompile Include="winutils\errors.cpp" />
     <ClCompile Include="graphics\graphics.cpp" />
     <ClCompile Include="main.cpp" />
@@ -142,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h" />
+    <ClInclude Include="net\tcp_client.h" />
     <ClInclude Include="winutils\errors.h" />
     <ClInclude Include="graphics\graphics.h" />
     <ClInclude Include="winutils\deleters.h" />

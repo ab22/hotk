@@ -42,6 +42,9 @@
     <ClCompile Include="winutils\errors.cpp">
       <Filter>Source Files\errors</Filter>
     </ClCompile>
+    <ClCompile Include="net\tcp_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h">
@@ -55,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="winutils\errors.h">
       <Filter>Header Files\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="net\tcp_client.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
