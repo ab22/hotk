@@ -17,28 +17,16 @@ using hotk::errors::ErrorCode;
 using hotk::graphics::Graphics;
 using hotk::net::TcpClient;
 
-void connect_to_server(std::vector<std::byte>& bitmap)
+using tcp = boost::asio::ip::tcp;
+
+void on_message(TcpClient &tcp_client, const boost::system::error_code err, const size_t length)
 {
-    std::cout << "Connecting to server on port 8080..." << std::endl;
-    TcpClient tcp_client("127.0.0.1", "8080");
-    tcp_client.connect();
+    if (err) {
+        std::cout << "Error reading message:" << err.message() << "\n";
+        return;
+    }
 
-    uint64_t bitmap_size = bitmap.size();
-    size_t bytes_sent = 0;
-
-    bytes_sent = tcp_client.send((void*)&bitmap_size, sizeof(uint64_t));
-    std::cout << "Sent " << bytes_sent << " bytes as header to server.\n";
-
-    bytes_sent = tcp_client.send(bitmap);
-    std::cout << "Sent " << bytes_sent << " bytes as header to server.\n";
-
-    std::cout << "Closing connection...\n";
-	tcp_client.close();
-}
-
-int main()
-{
-    std::cout << "Starting program...\n";
+    std::cout << "Read message of " << length << "bytes\n";
 
     try {
         std::cout << "Initializing graphics module...\n";
@@ -50,14 +38,48 @@ int main()
         std::cout << "Grabbing image data...\n";
         auto bitmap = g.to_vector(screen_hbitmap.get());
 
-        std::cout << "Establishing connection to server..." << "\n";
-        connect_to_server(bitmap);
-
-        std::cout << "Done! Have a good day commander!\n";
+        tcp_client.send(std::move(bitmap));
     } catch (const ErrorCode& err) {
         std::cout << "Unhandled error caught:\n"
-                  << "        code: " << err.code() << "\n"
-                  << "     message: " << err.what() << "\n";
+            << "        code: " << err.code() << "\n"
+            << "     message: " << err.what() << "\n";
+    }
+}
+
+void on_connect(TcpClient &tcp_client, const boost::system::error_code err)
+{
+    if (err) {
+        std::cout << "Error connecting: " << err.message() << "\n";
+        return;
+    }
+
+    std::cout << "Connected to server!\n";
+    std::cout << "Awaiting for message...\n";
+    tcp_client.read(on_message);
+    std::cout << "You can spam a new async call to write message here :D\n";
+}
+
+void connect_to_server()
+{
+    std::cout << "Connecting to server on port 8080..." << std::endl;
+    TcpClient tcp_client("127.0.0.1", "8080");
+
+    tcp_client.connect(on_connect);
+
+    system("pause");
+    tcp_client.stop();
+    tcp_client.run();
+    tcp_client.close();
+}
+
+int main()
+{
+    std::cout << "Starting program...\n";
+
+    try {
+        std::cout << "Establishing connection to server..." << "\n";
+        connect_to_server();
+        std::cout << "Done! Have a good day commander!\n";
     } catch (const std::exception& err) {
         std::cout << "Unhandled Exception caught:\n"
                   << " message:" << err.what() << "\n";
