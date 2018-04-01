@@ -20,21 +20,23 @@ using hotk::net::TcpClient;
 using tcp = boost::asio::ip::tcp;
 using boost::system::error_code;
 
-void on_message_sent(TcpClient &tcp_client, const error_code err, const size_t length)
+void on_write(TcpClient &tcp_client, const error_code err, const size_t length)
 {
     if (err) {
-        std::cout << "Failed to send message:" << err.message() << "\n";
-        std::cout << "Bytes written:" << length << "\n";
+        std::cout << "Failed to send message: " << err.message() << "\n";
+        std::cout << "Bytes written: " << length << "\n";
         return;
     }
 
     std::cout << length << " bytes sent to server!\n";
 }
 
-void on_message_receive(TcpClient &tcp_client, const error_code err, const size_t length)
+void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
 {
     if (err == boost::asio::error::eof || err == boost::asio::error::connection_reset) {
         std::cout << "Server has ended the connection:" << err.message() << "\n";
+        tcp_client.close();
+        tcp_client.stop();
         return;
     } else if (err) {
         std::cout << "Error reading message:" << err.message() << "\n";
@@ -58,8 +60,9 @@ void on_message_receive(TcpClient &tcp_client, const error_code err, const size_
         packet_header.resize(sizeof(header));
         std::memcpy(packet_header.data(), &header, sizeof(header));
 
-        tcp_client.send(std::move(packet_header), on_message_sent);
-        tcp_client.send(std::move(bitmap), on_message_sent);
+        tcp_client.write(std::move(packet_header));
+        tcp_client.write(std::move(bitmap));
+        tcp_client.read();
     } catch (const ErrorCode& err) {
         std::cout << "Unhandled error caught:\n"
             << "        code: " << err.code() << "\n"
@@ -76,16 +79,16 @@ void on_connect(TcpClient &tcp_client, const error_code err)
 
     std::cout << "Connected to server!\n";
     std::cout << "Awaiting for message...\n";
-    tcp_client.read(on_message_receive);
+    tcp_client.read();
     std::cout << "You can spam a new async call to write message here :D\n";
 }
 
 void connect_to_server()
 {
     std::cout << "Connecting to server on port 8080..." << std::endl;
-    TcpClient tcp_client("127.0.0.1", "8080");
+    TcpClient tcp_client("127.0.0.1", "8080", on_connect, on_read, on_write);
 
-    tcp_client.connect(on_connect);
+    tcp_client.connect();
 
     std::thread io_service_thread = std::thread([&tcp_client]() {
         std::cout << "Starting io ctx thread\n";
@@ -93,9 +96,6 @@ void connect_to_server()
         std::cout << "Ending io ctx thread\n";
     });
 
-    system("pause");
-
-    tcp_client.stop();
     io_service_thread.join();
     tcp_client.close();
 }

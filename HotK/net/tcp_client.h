@@ -26,18 +26,22 @@ namespace hotk::net {
             tcp::resolver::results_type _endpoint;
             std::deque<ByteVector> _msg_queue;
 
+            OnConnectCallback on_connect;
+            OnReadCallback on_read;
+            OnWriteCallback on_write;
+
             uint64_t _header_size;
 
-            void perform_send();
+            void perform_write();
 
         public:
-            TcpClient(const char* server, const char* port);
+            TcpClient(const char* server, const char* port, OnConnectCallback on_connect, OnReadCallback on_read, OnWriteCallback on_write);
 
-            void connect(const OnConnectCallback);
-            void read(const OnReadCallback);
+            void connect();
+            void read();
             bool is_connected();
 
-            void send(ByteVector&&, const OnWriteCallback);
+            void write(ByteVector&&);
 
             void stop();
             void run();
