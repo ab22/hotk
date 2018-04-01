@@ -19,11 +19,11 @@ namespace hotk::graphics {
 		std::unique_ptr<HDC__, CompatibleDCDeleter> hDest;
 
 		inline void build_device_contexts();
-		std::unique_ptr<BITMAPINFO> create_bitmap_info(HBITMAP hbitmap);
+		std::unique_ptr<BITMAPINFO> create_bitmap_info(const HBITMAP hbitmap) const;
 
 	public:
 		Graphics();
 		std::unique_ptr<HBITMAP__, HBitmapDeleter> capture_screen() const;
-		std::vector<std::byte> to_vector(HBITMAP hbitmap);
+		std::vector<std::byte> to_vector(const HBITMAP hbitmap) const;
 	};
 }

@@ -58,7 +58,7 @@ std::unique_ptr<HBITMAP__, HBitmapDeleter> Graphics::capture_screen() const
     return bitmap_handler;
 }
 
-std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(HBITMAP hbitmap)
+std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(const HBITMAP hbitmap) const
 {
     BITMAP bmp;
     auto result = GetObject(hbitmap, sizeof(BITMAP), &bmp);
@@ -79,7 +79,7 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(HBITMAP hbitmap)
     return bitmap_info;
 }
 
-std::vector<std::byte> Graphics::to_vector(HBITMAP hbitmap)
+std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
 {
     auto bmi = create_bitmap_info(hbitmap);
 
