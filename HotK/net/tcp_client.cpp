@@ -59,7 +59,9 @@ void TcpClient::write(TcpClient::ByteVector&& data)
 
 void TcpClient::perform_write()
 {
-    boost::asio::async_write(_socket, buffer(_msg_queue.front().data(), _msg_queue.front().size()),
+    auto& next_message = _msg_queue.front();
+
+    boost::asio::async_write(_socket, buffer(next_message),
         [this](error_code err, std::size_t length) {
             if (err) {
                 on_write(*this, err, length);
