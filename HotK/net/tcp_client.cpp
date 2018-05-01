@@ -41,7 +41,7 @@ void TcpClient::read()
     );
 }
 
-bool TcpClient::is_connected()
+bool TcpClient::is_connected() const
 {
     return _socket.is_open();
 }

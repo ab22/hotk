@@ -39,7 +39,7 @@ namespace hotk::net {
 
             void connect();
             void read();
-            bool is_connected();
+            bool is_connected() const;
 
             void write(ByteVector&&);
 
