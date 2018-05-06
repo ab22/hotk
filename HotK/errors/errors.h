@@ -15,7 +15,7 @@ namespace hotk::errors {
 		ErrorCode(ErrorCode&&) = default;
 
 		virtual int code() const noexcept;
-		virtual operator bool() const noexcept;
+		virtual explicit operator bool() const noexcept;
 		virtual ErrorCode& operator=(const ErrorCode&) = default;
 		virtual ErrorCode& operator=(ErrorCode&&) = default;
 	};
