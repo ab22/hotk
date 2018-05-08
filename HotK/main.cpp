@@ -1,5 +1,3 @@
-#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
-
 #include <fstream>
 #include <iostream>
 #include <cstdint>
@@ -20,7 +18,7 @@ using hotk::net::TcpClient;
 using tcp = boost::asio::ip::tcp;
 using boost::system::error_code;
 
-void on_write(TcpClient &tcp_client, const error_code err, const size_t length)
+void on_write(TcpClient&, const error_code err, const size_t length)
 {
     if (err) {
         std::cout << "Failed to send message: " << err.message() << "\n";
