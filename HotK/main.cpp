@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstring>
 #include <cstddef>
+#include <chrono>
+#include <thread>
 
 #include <boost/asio.hpp>
 
@@ -31,12 +33,16 @@ void on_write(TcpClient&, const error_code err, const size_t length)
 
 void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
 {
-    if (err == boost::asio::error::eof || err == boost::asio::error::connection_reset) {
-        std::cout << "Server has ended the connection:" << err.message() << "\n";
-        tcp_client.close();
-        tcp_client.stop();
-        return;
-    } else if (err) {
+    if (err) {
+        if (err == boost::asio::error::eof || err == boost::asio::error::connection_reset) {
+            std::cout << "Server has ended the connection:" << err.message() << "\n";
+            tcp_client.close();
+
+            // Attempt to reconnect.
+            tcp_client.connect();
+            return;
+        }
+
         std::cout << "Error reading message:" << err.message() << "\n";
         return;
     }
@@ -70,10 +76,23 @@ void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
 
 void on_connect(TcpClient &tcp_client, const error_code err)
 {
+    static unsigned int sleep_time_seconds = 30;
+    static unsigned int reconnect_attempt = 0;
+
     if (err) {
-        std::cout << "Error connecting: " << err.message() << "\n";
+        std::cout << "An error ocurred when connecting: " << err.message() << "\n";
+        std::cout << "Attempting to reconnect in " << sleep_time_seconds << " seconds...\n";
+        std::this_thread::sleep_for(std::chrono::seconds(sleep_time_seconds));
+
+        if (reconnect_attempt++ <= 10)
+            sleep_time_seconds *= 2;
+
+        tcp_client.connect();
         return;
     }
+
+    sleep_time_seconds = 30;
+    reconnect_attempt = 0;
 
     std::cout << "Connected to server!\n";
     std::cout << "Awaiting for message...\n";
