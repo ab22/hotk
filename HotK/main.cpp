@@ -14,11 +14,30 @@
 #include "net/tcp_client.h"
 
 using hotk::errors::ErrorCode;
+using hotk::winutils::errors::Win32Error;
 using hotk::graphics::Graphics;
 using hotk::net::TcpClient;
 
 using tcp = boost::asio::ip::tcp;
 using boost::system::error_code;
+
+std::string computer_name;
+
+std::string get_computer_name()
+{
+    std::string fqdn;
+    DWORD       size = 0;
+
+    GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, NULL, &size);
+    fqdn.resize((std::size_t)size);
+
+    auto err = GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, fqdn.data(), &size);
+
+    if (err == 0)
+        throw Win32Error(GetLastError(), "graphics ctor: GetComputerNameEx failed");
+
+    return fqdn;
+}
 
 void on_write(TcpClient&, const error_code err, const size_t length)
 {
@@ -31,7 +50,7 @@ void on_write(TcpClient&, const error_code err, const size_t length)
     std::cout << length << " bytes sent to server!\n";
 }
 
-void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
+void on_read(TcpClient &tcp_client, const error_code err, std::vector<std::byte>&& data)
 {
     if (err) {
         if (err == boost::asio::error::eof || err == boost::asio::error::connection_reset) {
@@ -47,7 +66,7 @@ void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
         return;
     }
 
-    std::cout << "Read message of " << length << "bytes\n";
+    std::cout << "Read message of " << data.size() << "bytes\n";
 
     try {
         std::cout << "Initializing graphics module...\n";
@@ -59,12 +78,6 @@ void on_read(TcpClient &tcp_client, const error_code err, const size_t length)
         std::cout << "Grabbing image data...\n";
         auto bitmap = g.to_vector(screen_hbitmap.get());
 
-        std::vector<std::byte> packet_header;
-        uint64_t header = bitmap.size();
-        packet_header.resize(sizeof(header));
-        std::memcpy(packet_header.data(), &header, sizeof(header));
-
-        tcp_client.write(std::move(packet_header));
         tcp_client.write(std::move(bitmap));
         tcp_client.read();
     } catch (const ErrorCode& err) {
@@ -97,7 +110,36 @@ void on_connect(TcpClient &tcp_client, const error_code err)
     std::cout << "Connected to server!\n";
     std::cout << "Awaiting for message...\n";
     tcp_client.read();
-    std::cout << "You can spam a new async call to write message here :D\n";
+
+    try {
+        std::cout << "Initializing graphics module...\n";
+        Graphics g;
+
+        std::cout << "Capturing Screen...\n";
+        auto screen_hbitmap = g.capture_screen();
+
+        std::cout << "Grabbing image data...\n";
+        auto bitmap = g.to_vector(screen_hbitmap.get());
+
+        tcp_client.write(std::move(bitmap));
+        tcp_client.read();
+    }
+    catch (const ErrorCode& err) {
+        std::cout << "Unhandled error caught:\n"
+            << "        code: " << err.code() << "\n"
+            << "     message: " << err.what() << "\n";
+    }
+
+    /*try {
+        std::cout << "Getting computer name...\n";
+        computer_name = get_computer_name();
+    }
+    catch (Win32Error &err) {
+        std::cout << "Failed to get computer name:\n"
+                  << " message: " << err.what() << "\n";
+    }
+
+    tcp_client.write(computer_name.data(), computer_name.size());*/
 }
 
 void connect_to_server()

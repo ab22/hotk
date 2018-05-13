@@ -13,7 +13,7 @@ TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_
     : _server(server)
     , _port(port)
     , _socket(_io_service)
-    , _header_size(0)
+    , _packet_size(0)
     , on_connect(on_connect)
     , on_read(on_read)
     , on_write(on_write)
@@ -34,9 +34,35 @@ void TcpClient::connect()
 
 void TcpClient::read()
 {
-    boost::asio::async_read(_socket, buffer(&_header_size, sizeof(_header_size)),
-        [this](const error_code err, const size_t length) {
-            on_read(*this, err, length);
+    // Read the packet size of the message.
+    boost::asio::async_read(_socket, buffer(&_packet_size, sizeof(_packet_size)),
+        [this](const error_code err, const size_t) {
+            if (err) {
+                // Clear buffer in case we left it in an undefined state.
+                _internal_read_buffer.clear();
+
+                on_read(*this, err, std::move(_internal_read_buffer));
+                return;
+            }
+
+            std::cout << "[TCPClient]: read packet size of " << _packet_size << "\n";
+            read_data(_packet_size);
+        }
+    );
+}
+
+void TcpClient::read_data(uint64_t packet_size)
+{
+    _internal_read_buffer.clear();
+    _internal_read_buffer.resize(packet_size);
+
+    // Read the actual data from the server.
+    boost::asio::async_read(_socket, buffer(_internal_read_buffer),
+        [this](const error_code err, const size_t) {
+            uint64_t message_code = *((uint64_t*)_internal_read_buffer.data());
+            std::cout << "[TCPClient]: read " << _internal_read_buffer.size() << " bytes\n";
+            std::cout << "[TCPClient]: message code is: " << message_code << "\n";
+            on_read(*this, err, std::move(_internal_read_buffer));
         }
     );
 }
@@ -50,7 +76,15 @@ void TcpClient::write(TcpClient::ByteVector&& data)
 {
     boost::asio::post(_io_service, [this, data]() {
         bool queue_empty = _msg_queue.empty();
-        _msg_queue.push_back(std::move(data));
+
+        // Send first the size of the packet as a uint64_t
+        std::vector<std::byte> header_packet;
+        uint64_t packet_size = data.size();
+        header_packet.resize(sizeof(packet_size));
+        std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
+
+        _msg_queue.push_back(buffer(std::move(header_packet)));
+        _msg_queue.push_back(buffer(std::move(data)));
 
         if (queue_empty)
             perform_write();

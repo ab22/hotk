@@ -91,6 +91,11 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
     bitmap_header.bfOffBits   = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize;
 
     std::vector<std::byte> bmp;
+
+    // Allocate enough memory to hold the bitmap header + it's data.
+    // When performing a std::copy with std::back_inserter, all elements
+    // copied will get push_back() to the end and the vector's size will
+    // increment by itself.
     bmp.reserve(bitmap_header.bfSize);
 
     std::copy(
@@ -102,6 +107,10 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
         (std::byte*)&bmi->bmiHeader + sizeof(BITMAPINFOHEADER),
         std::back_inserter(bmp));
 
+    // Unlike std::copy, GetDIBits expects a LPVOID to where the data should
+    // be stored. In this case, GetDIBits will not get push_back() so the
+    // vector will never know that it's size changed, so we perform a
+    // resize() on the vector to tell it the new total size of it.
     bmp.resize(bitmap_header.bfSize);
     auto result = GetDIBits(
         hdc.get(),

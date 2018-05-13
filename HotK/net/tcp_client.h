@@ -13,23 +13,26 @@ namespace hotk::net {
         private:
             using tcp = boost::asio::ip::tcp;
             using io_context = boost::asio::io_context;
-            using OnConnectCallback = void(*)(TcpClient&, const boost::system::error_code);
-            using OnReadCallback = void(*)(TcpClient&, const boost::system::error_code, const size_t);
-            using OnWriteCallback = void(*)(TcpClient&, const boost::system::error_code, const size_t);
+            using const_buffer = boost::asio::const_buffer;
             using ByteVector = std::vector<std::byte>;
+
+            using OnConnectCallback = void(*)(TcpClient&, const boost::system::error_code);
+            using OnReadCallback = void(*)(TcpClient&, const boost::system::error_code, ByteVector&&);
+            using OnWriteCallback = void(*)(TcpClient&, const boost::system::error_code, const size_t);
 
             const char* _server;
             const char* _port;
             boost::asio::io_context _io_service;
             tcp::socket _socket;
             tcp::resolver::results_type _endpoint;
-            std::deque<ByteVector> _msg_queue;
+            std::deque<const_buffer> _msg_queue;
 
             OnConnectCallback on_connect;
             OnReadCallback on_read;
             OnWriteCallback on_write;
 
-            uint64_t _header_size;
+            uint64_t _packet_size;
+            ByteVector _internal_read_buffer;
 
             void perform_write();
 
@@ -38,6 +41,7 @@ namespace hotk::net {
 
             void connect();
             void read();
+            void read_data(uint64_t packet_size);
             bool is_connected() const;
 
             void write(ByteVector&&);
