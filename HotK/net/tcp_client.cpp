@@ -76,15 +76,35 @@ bool TcpClient::is_connected() const
     return _socket.is_open();
 }
 
-void TcpClient::write(std::vector<std::byte>&& data)
+void TcpClient::write(const char* data, std::size_t size)
+{
+    boost::asio::post(_io_service, [this, data, size]() mutable {
+        bool queue_empty = _msg_queue.empty();
+
+        // Send first the size of the packet as a uint64_t.
+        uint64_t packet_size = (uint64_t)size;
+        std::vector<std::byte> header_packet(sizeof(packet_size));
+        std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
+
+        auto header_container = new VectorContainer<std::byte>(std::move(header_packet));
+        _msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
+
+        auto data_container = new PtrContainer(data, size);
+        _msg_queue.push_back(std::unique_ptr<BaseContainer>(data_container));
+
+        if (queue_empty)
+            perform_write();
+    });
+}
+
+void TcpClient::write(TcpClient::ByteVector&& data)
 {
     boost::asio::post(_io_service, [this, data]() {
         bool queue_empty = _msg_queue.empty();
 
         // Send first the size of the packet as a uint64_t.
-        std::vector<std::byte> header_packet;
         uint64_t packet_size = data.size();
-        header_packet.resize(sizeof(packet_size));
+        std::vector<std::byte> header_packet(sizeof(packet_size));
         std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
 
         auto header_container = new VectorContainer<std::byte>(std::move(header_packet));

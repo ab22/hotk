@@ -129,7 +129,7 @@ void on_connect(TcpClient &tcp_client, const error_code err)
             << "     message: " << err.what() << "\n";
     }
 
-    /*try {
+    try {
         std::cout << "Getting computer name...\n";
         computer_name = get_computer_name();
     }
@@ -138,7 +138,7 @@ void on_connect(TcpClient &tcp_client, const error_code err)
                   << " message: " << err.what() << "\n";
     }
 
-    tcp_client.write(computer_name.data(), computer_name.size());*/
+    tcp_client.write(computer_name.data(), computer_name.size());
 }
 
 void connect_to_server()

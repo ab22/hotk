@@ -46,6 +46,7 @@ namespace hotk::net {
             void read_data(uint64_t packet_size);
             bool is_connected() const;
 
+            void write(const char*, std::size_t);
             void write(ByteVector&&);
 
             void stop();
