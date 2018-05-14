@@ -14,7 +14,7 @@ using hotk::net::containers::PtrContainer;
 using hotk::net::containers::VectorContainer;
 
 TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_connect,
-	OnReadCallback on_read, OnWriteCallback on_write)
+		OnReadCallback on_read, OnWriteCallback on_write)
 	: _server(server)
 	, _port(port)
 	, _socket(_io_service)
@@ -64,11 +64,11 @@ void TcpClient::read_data(uint64_t packet_size)
 	// Read the actual data from the server.
 	boost::asio::async_read(_socket, buffer(_internal_read_buffer),
 		[this](const error_code err, const size_t) {
-		uint64_t message_code = *((uint64_t*)_internal_read_buffer.data());
-		std::cout << "[TCPClient]: read " << _internal_read_buffer.size() << " bytes\n";
-		std::cout << "[TCPClient]: message code is: " << message_code << "\n";
-		on_read(*this, err, std::move(_internal_read_buffer));
-	}
+			uint64_t message_code = *((uint64_t*)_internal_read_buffer.data());
+			std::cout << "[TCPClient]: read " << _internal_read_buffer.size() << " bytes\n";
+			std::cout << "[TCPClient]: message code is: " << message_code << "\n";
+			on_read(*this, err, std::move(_internal_read_buffer));
+		}
 	);
 }
 
@@ -127,19 +127,19 @@ void TcpClient::perform_write()
 
 	boost::asio::async_write(_socket, buffer(data, size),
 		[this](error_code err, std::size_t length) {
-		if (err) {
+			if (err) {
+				on_write(*this, err, length);
+				return;
+			}
+
+			// Remove current message from queue.
+			_msg_queue.pop_front();
+
+			if (!_msg_queue.empty())
+				perform_write();
+
 			on_write(*this, err, length);
-			return;
 		}
-
-		// Remove current message from queue.
-		_msg_queue.pop_front();
-
-		if (!_msg_queue.empty())
-			perform_write();
-
-		on_write(*this, err, length);
-	}
 	);
 }
 
