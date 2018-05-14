@@ -13,7 +13,6 @@ namespace hotk::errors {
 		ErrorCode(int code, const char* message) noexcept;
 		ErrorCode(int code, std::string& message) noexcept;
 		ErrorCode(ErrorCode&&) = default;
-		ErrorCode(ErrorCode&&) = default;
 
 		virtual int code() const noexcept;
 		virtual explicit operator bool() const noexcept;
