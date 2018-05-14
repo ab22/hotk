@@ -32,8 +32,8 @@ void TcpClient::connect()
 {
 	boost::asio::async_connect(_socket, _endpoint,
 		[this](const error_code err, const tcp::endpoint) {
-		on_connect(*this, err);
-	}
+			on_connect(*this, err);
+		}
 	);
 }
 
@@ -42,17 +42,17 @@ void TcpClient::read()
 	// Read the packet size of the message.
 	boost::asio::async_read(_socket, buffer(&_packet_size, sizeof(_packet_size)),
 		[this](const error_code err, const size_t) {
-		if (err) {
-			// Clear buffer in case we left it in an undefined state.
-			_internal_read_buffer.clear();
+			if (err) {
+				// Clear buffer in case we left it in an undefined state.
+				_internal_read_buffer.clear();
 
-			on_read(*this, err, std::move(_internal_read_buffer));
-			return;
+				on_read(*this, err, std::move(_internal_read_buffer));
+				return;
+			}
+
+			std::cout << "[TCPClient]: read packet size of " << _packet_size << "\n";
+			read_data(_packet_size);
 		}
-
-		std::cout << "[TCPClient]: read packet size of " << _packet_size << "\n";
-		read_data(_packet_size);
-	}
 	);
 }
 
