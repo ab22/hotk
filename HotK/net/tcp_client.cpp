@@ -9,6 +9,10 @@ using boost::asio::executor_work_guard;
 using boost::asio::make_work_guard;
 using executor_type = boost::asio::io_service::executor_type;
 
+using hotk::net::containers::BaseContainer;
+using hotk::net::containers::PtrContainer;
+using hotk::net::containers::VectorContainer;
+
 TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_connect, OnReadCallback on_read, OnWriteCallback on_write)
     : _server(server)
     , _port(port)
@@ -72,19 +76,22 @@ bool TcpClient::is_connected() const
     return _socket.is_open();
 }
 
-void TcpClient::write(TcpClient::ByteVector&& data)
+void TcpClient::write(std::vector<std::byte>&& data)
 {
     boost::asio::post(_io_service, [this, data]() {
         bool queue_empty = _msg_queue.empty();
 
-        // Send first the size of the packet as a uint64_t
+        // Send first the size of the packet as a uint64_t.
         std::vector<std::byte> header_packet;
         uint64_t packet_size = data.size();
         header_packet.resize(sizeof(packet_size));
         std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
 
-        _msg_queue.push_back(buffer(std::move(header_packet)));
-        _msg_queue.push_back(buffer(std::move(data)));
+        auto header_container = new VectorContainer<std::byte>(std::move(header_packet));
+        _msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
+
+        auto data_container = new VectorContainer<std::byte>(std::move(data));
+        _msg_queue.push_back(std::unique_ptr<BaseContainer>(data_container));
 
         if (queue_empty)
             perform_write();
@@ -94,8 +101,10 @@ void TcpClient::write(TcpClient::ByteVector&& data)
 void TcpClient::perform_write()
 {
     auto& next_message = _msg_queue.front();
+    const char* data = next_message.get()->data();
+    std::size_t size = next_message.get()->size();
 
-    boost::asio::async_write(_socket, buffer(next_message),
+    boost::asio::async_write(_socket, buffer(data, size),
         [this](error_code err, std::size_t length) {
             if (err) {
                 on_write(*this, err, length);

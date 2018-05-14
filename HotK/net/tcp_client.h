@@ -7,13 +7,15 @@
 #include <deque>
 #include <iostream>
 
+#include "containers/message_containers.h"
+
 
 namespace hotk::net {
     class TcpClient {
         private:
             using tcp = boost::asio::ip::tcp;
             using io_context = boost::asio::io_context;
-            using const_buffer = boost::asio::const_buffer;
+            using BaseContainer = hotk::net::containers::BaseContainer;
             using ByteVector = std::vector<std::byte>;
 
             using OnConnectCallback = void(*)(TcpClient&, const boost::system::error_code);
@@ -25,7 +27,7 @@ namespace hotk::net {
             boost::asio::io_context _io_service;
             tcp::socket _socket;
             tcp::resolver::results_type _endpoint;
-            std::deque<const_buffer> _msg_queue;
+            std::deque< std::unique_ptr<BaseContainer> > _msg_queue;
 
             OnConnectCallback on_connect;
             OnReadCallback on_read;

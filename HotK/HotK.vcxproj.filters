@@ -65,5 +65,17 @@
     <ClInclude Include="net\messages\message_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="net\containers\base_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\containers\message_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\containers\ptr_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="net\containers\vector_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

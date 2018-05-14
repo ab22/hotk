@@ -122,7 +122,6 @@ void on_connect(TcpClient &tcp_client, const error_code err)
         auto bitmap = g.to_vector(screen_hbitmap.get());
 
         tcp_client.write(std::move(bitmap));
-        tcp_client.read();
     }
     catch (const ErrorCode& err) {
         std::cout << "Unhandled error caught:\n"
