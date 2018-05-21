@@ -3,3 +3,4 @@
 #include "base_container.h"
 #include "vector_container.h"
 #include "ptr_container.h"
+#include "primitive_container.h"

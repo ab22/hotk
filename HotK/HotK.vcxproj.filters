@@ -77,5 +77,8 @@
     <ClInclude Include="net\containers\vector_container.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="net\containers\primitive_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

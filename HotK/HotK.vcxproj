@@ -149,6 +149,7 @@
     <ClInclude Include="errors\errors.h" />
     <ClInclude Include="net\containers\base_container.h" />
     <ClInclude Include="net\containers\message_containers.h" />
+    <ClInclude Include="net\containers\primitive_container.h" />
     <ClInclude Include="net\messages\message_type.h" />
     <ClInclude Include="net\containers\ptr_container.h" />
     <ClInclude Include="net\containers\vector_container.h" />

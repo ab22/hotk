@@ -12,6 +12,7 @@ using executor_type = boost::asio::io_service::executor_type;
 using hotk::net::containers::BaseContainer;
 using hotk::net::containers::PtrContainer;
 using hotk::net::containers::VectorContainer;
+using hotk::net::containers::PrimitiveContainer;
 
 TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_connect,
 		OnReadCallback on_read, OnWriteCallback on_write)
@@ -83,11 +84,7 @@ void TcpClient::write(const char* data, std::size_t size)
 		bool queue_empty = _msg_queue.empty();
 
 		// Send first the size of the packet as a uint64_t.
-		uint64_t packet_size = (uint64_t)size;
-		std::vector<std::byte> header_packet(sizeof(packet_size));
-		std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
-
-		auto header_container = new VectorContainer<std::byte>(std::move(header_packet));
+		auto header_container = new PrimitiveContainer<uint64_t>(size);
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
 
 		auto data_container = new PtrContainer(data, size);
@@ -104,11 +101,7 @@ void TcpClient::write(TcpClient::ByteVector&& data)
 		bool queue_empty = _msg_queue.empty();
 
 		// Send first the size of the packet as a uint64_t.
-		uint64_t packet_size = data.size();
-		std::vector<std::byte> header_packet(sizeof(packet_size));
-		std::memcpy(header_packet.data(), &packet_size, sizeof(packet_size));
-
-		auto header_container = new VectorContainer<std::byte>(std::move(header_packet));
+		auto header_container = new PrimitiveContainer<uint64_t>(data.size());
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
 
 		auto data_container = new VectorContainer<std::byte>(std::move(data));
