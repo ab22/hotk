@@ -20,22 +20,6 @@ std::string get_computer_name()
 	return fqdn;
 }
 
-void hotk::handlers::process_message(TcpClient& tcp_client, const MessageType msg_type, std::vector<std::byte>&& data)
-{
-	switch (msg_type) {
-	case MessageType::MachineInfo:
-		get_machine_info(tcp_client);
-		break;
-
-	case MessageType::ScreenCapture:
-		capture_screen(tcp_client);
-		break;
-
-	default:
-		std::cout << "Unrecognized message type received: " << (uint16_t)msg_type << "\n";
-	}
-}
-
 void hotk::handlers::get_machine_info(TcpClient& tcp_client)
 {
 	if (machine_name.length() == 0) {
@@ -69,4 +53,20 @@ void hotk::handlers::capture_screen(TcpClient& tcp_client)
 	auto bitmap = g.to_vector(screen_hbitmap.get());
 
 	tcp_client.write(MessageType::ScreenCapture, std::move(bitmap));
+}
+
+void hotk::handlers::process_message(TcpClient& tcp_client, const MessageType msg_type, std::vector<std::byte>&& data)
+{
+	switch (msg_type) {
+	case MessageType::MachineInfo:
+		hotk::handlers::get_machine_info(tcp_client);
+		break;
+
+	case MessageType::ScreenCapture:
+		hotk::handlers::capture_screen(tcp_client);
+		break;
+
+	default:
+		std::cout << "Unrecognized message type received: " << (uint16_t)msg_type << "\n";
+	}
 }

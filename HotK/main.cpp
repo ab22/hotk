@@ -14,7 +14,6 @@
 #include "handlers/handlers.h"
 
 using hotk::errors::ErrorCode;
-using hotk::winutils::errors::Win32Error;
 using hotk::net::TcpClient;
 using hotk::net::messages::MessageType;
 using hotk::handlers::process_message;
@@ -55,7 +54,7 @@ void on_read(TcpClient &tcp_client, const error_code err, const MessageType msg_
 		process_message(tcp_client, msg_type, std::move(data));
 	}
 	catch (const ErrorCode& err) {
-		std::cout << "process message: error processing message:\n"
+		std::cout << "process message:\n"
 			<< " request type: "  << (uint16_t)msg_type << "\n"
 			<< "         code: " << err.code() << "\n"
 			<< "      message: " << err.what() << "\n";
