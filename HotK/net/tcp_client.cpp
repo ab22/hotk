@@ -40,35 +40,55 @@ void TcpClient::connect()
 
 void TcpClient::read()
 {
+	// Clear buffer in case we left it in an undefined state.
+	_internal_read_buffer.clear();
+
 	// Read the packet size of the message.
 	boost::asio::async_read(_socket, buffer(&_packet_size, sizeof(_packet_size)),
 		[this](const error_code err, const size_t) {
 			if (err) {
-				// Clear buffer in case we left it in an undefined state.
-				_internal_read_buffer.clear();
-
-				on_read(*this, err, std::move(_internal_read_buffer));
+				on_read(*this, err, (TcpClient::MessageType)0, std::move(_internal_read_buffer));
 				return;
 			}
 
 			std::cout << "[TCPClient]: read packet size of " << _packet_size << "\n";
-			read_data(_packet_size);
+			read_msg_type(_packet_size);
 		}
 	);
 }
 
-void TcpClient::read_data(uint64_t packet_size)
+void TcpClient::read_msg_type(uint64_t packet_size)
 {
-	_internal_read_buffer.clear();
+	// Read the message type.
+	boost::asio::async_read(_socket, buffer(&_message_type, sizeof(_message_type)),
+		[this, packet_size](const error_code err, const size_t) {
+			if (err) {
+				on_read(*this, err, (TcpClient::MessageType)0, std::move(_internal_read_buffer));
+				return;
+			}
+
+			std::cout << "[TCPClient]: read message type " << _packet_size << "\n";
+
+			// If request does not have any data.
+			if (packet_size == 0) {
+				on_read(*this, err, _message_type, std::move(_internal_read_buffer));
+				return;
+			}
+
+			read_data(packet_size, _message_type);
+		}
+	);
+}
+
+void TcpClient::read_data(uint64_t packet_size, MessageType msg_type)
+{
 	_internal_read_buffer.resize(packet_size);
 
 	// Read the actual data from the server.
 	boost::asio::async_read(_socket, buffer(_internal_read_buffer),
-		[this](const error_code err, const size_t) {
-			uint64_t message_code = *((uint64_t*)_internal_read_buffer.data());
+		[this, msg_type](const error_code err, const size_t) {
 			std::cout << "[TCPClient]: read " << _internal_read_buffer.size() << " bytes\n";
-			std::cout << "[TCPClient]: message code is: " << message_code << "\n";
-			on_read(*this, err, std::move(_internal_read_buffer));
+			on_read(*this, err, msg_type, std::move(_internal_read_buffer));
 		}
 	);
 }
@@ -78,14 +98,17 @@ bool TcpClient::is_connected() const
 	return _socket.is_open();
 }
 
-void TcpClient::write(const char* data, std::size_t size)
+void TcpClient::write(TcpClient::MessageType msg_type, const char* data, std::size_t size)
 {
-	boost::asio::post(_io_service, [this, data, size]() mutable {
+	boost::asio::post(_io_service, [this, msg_type, data, size]() mutable {
 		bool queue_empty = _msg_queue.empty();
 
 		// Send first the size of the packet as a uint64_t.
 		auto header_container = new PrimitiveContainer<uint64_t>(size);
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
+
+		auto msg_type_container = new PrimitiveContainer<uint16_t>((uint16_t)msg_type);
+		_msg_queue.push_back(std::unique_ptr<BaseContainer>(msg_type_container));
 
 		auto data_container = new PtrContainer(data, size);
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(data_container));
@@ -95,14 +118,17 @@ void TcpClient::write(const char* data, std::size_t size)
 	});
 }
 
-void TcpClient::write(TcpClient::ByteVector&& data)
+void TcpClient::write(TcpClient::MessageType msg_type, TcpClient::ByteVector&& data)
 {
-	boost::asio::post(_io_service, [this, data]() {
+	boost::asio::post(_io_service, [this, msg_type, data]() {
 		bool queue_empty = _msg_queue.empty();
 
 		// Send first the size of the packet as a uint64_t.
 		auto header_container = new PrimitiveContainer<uint64_t>(data.size());
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(header_container));
+
+		auto msg_type_container = new PrimitiveContainer<uint16_t>((uint16_t)msg_type);
+		_msg_queue.push_back(std::unique_ptr<BaseContainer>(msg_type_container));
 
 		auto data_container = new VectorContainer<std::byte>(std::move(data));
 		_msg_queue.push_back(std::unique_ptr<BaseContainer>(data_container));
@@ -136,6 +162,11 @@ void TcpClient::perform_write()
 	);
 }
 
+inline void TcpClient::clear_message_queue() noexcept
+{
+	_msg_queue.clear();
+}
+
 void TcpClient::run()
 {
 	executor_work_guard<executor_type> _work_guard = make_work_guard(_io_service);
@@ -144,6 +175,8 @@ void TcpClient::run()
 
 void TcpClient::close()
 {
+	// Remove all pending messages on disconnect/close.
+	_msg_queue.clear();
 	_socket.close();
 }
 
