@@ -51,7 +51,6 @@ void TcpClient::read()
 				return;
 			}
 
-			std::cout << "[TCPClient]: read packet size of " << _packet_size << "\n";
 			read_msg_type(_packet_size);
 		}
 	);
@@ -66,8 +65,6 @@ void TcpClient::read_msg_type(uint64_t packet_size)
 				on_read(*this, err, (TcpClient::MessageType)0, std::move(_internal_read_buffer));
 				return;
 			}
-
-			std::cout << "[TCPClient]: read message type " << _packet_size << "\n";
 
 			// If request does not have any data.
 			if (packet_size == 0) {
@@ -87,7 +84,6 @@ void TcpClient::read_data(uint64_t packet_size, MessageType msg_type)
 	// Read the actual data from the server.
 	boost::asio::async_read(_socket, buffer(_internal_read_buffer),
 		[this, msg_type](const error_code err, const size_t) {
-			std::cout << "[TCPClient]: read " << _internal_read_buffer.size() << " bytes\n";
 			on_read(*this, err, msg_type, std::move(_internal_read_buffer));
 		}
 	);
@@ -160,11 +156,6 @@ void TcpClient::perform_write()
 			on_write(*this, err, length);
 		}
 	);
-}
-
-inline void TcpClient::clear_message_queue() noexcept
-{
-	_msg_queue.clear();
 }
 
 void TcpClient::run()

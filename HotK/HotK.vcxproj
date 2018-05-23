@@ -139,6 +139,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errors\errors.cpp" />
+    <ClCompile Include="handlers\handlers.cpp" />
     <ClCompile Include="net\tcp_client.cpp" />
     <ClCompile Include="winutils\errors.cpp" />
     <ClCompile Include="graphics\graphics.cpp" />
@@ -147,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h" />
+    <ClInclude Include="handlers\handlers.h" />
     <ClInclude Include="net\containers\base_container.h" />
     <ClInclude Include="net\containers\message_containers.h" />
     <ClInclude Include="net\containers\primitive_container.h" />

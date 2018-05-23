@@ -4,7 +4,7 @@
 
 namespace hotk::net::messages {
 	enum class MessageType : uint16_t {
-		screen_capture = 1,
-		pc_info,
+		ScreenCapture = 1,
+		MachineInfo
 	};
 }

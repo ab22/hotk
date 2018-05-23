@@ -39,7 +39,6 @@ namespace hotk::net {
 		ByteVector _internal_read_buffer;
 
 		void perform_write();
-		inline void clear_message_queue() noexcept;
 
 		void read_msg_type(uint64_t);
 		void read_data(uint64_t, MessageType);

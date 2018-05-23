@@ -4,42 +4,23 @@
 #include <vector>
 #include <cstring>
 #include <cstddef>
-#include <chrono>
 #include <thread>
 
 #include <boost/asio.hpp>
 
 #include "errors/errors.h"
-#include "graphics/graphics.h"
 #include "net/tcp_client.h"
 #include "net/messages/message_type.h"
+#include "handlers/handlers.h"
 
 using hotk::errors::ErrorCode;
 using hotk::winutils::errors::Win32Error;
-using hotk::graphics::Graphics;
 using hotk::net::TcpClient;
 using hotk::net::messages::MessageType;
+using hotk::handlers::process_message;
 
 using tcp = boost::asio::ip::tcp;
 using boost::system::error_code;
-
-std::string computer_name;
-
-std::string get_computer_name()
-{
-	std::string fqdn;
-	DWORD       size = 0;
-
-	GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, NULL, &size);
-	fqdn.resize((std::size_t)size);
-
-	auto err = GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, fqdn.data(), &size);
-
-	if (err == 0)
-		throw Win32Error(GetLastError(), "get_computer_name: GetComputerNameEx failed");
-
-	return fqdn;
-}
 
 void on_write(TcpClient&, const error_code err, const size_t length)
 {
@@ -52,7 +33,7 @@ void on_write(TcpClient&, const error_code err, const size_t length)
 	std::cout << length << " bytes sent to server!\n";
 }
 
-void on_read(TcpClient &tcp_client, const error_code err, const MessageType, const std::vector<std::byte>&& data)
+void on_read(TcpClient &tcp_client, const error_code err, const MessageType msg_type, std::vector<std::byte>&& data)
 {
 	if (err) {
 		if (err == boost::asio::error::eof || err == boost::asio::error::connection_reset) {
@@ -68,25 +49,21 @@ void on_read(TcpClient &tcp_client, const error_code err, const MessageType, con
 		return;
 	}
 
-	std::cout << "Read message of " << data.size() << "bytes\n";
+	tcp_client.read();
 
 	try {
-		std::cout << "Initializing graphics module...\n";
-		Graphics g;
-
-		std::cout << "Capturing Screen...\n";
-		auto screen_hbitmap = g.capture_screen();
-
-		std::cout << "Grabbing image data...\n";
-		auto bitmap = g.to_vector(screen_hbitmap.get());
-
-		tcp_client.write(MessageType::screen_capture, std::move(bitmap));
-		tcp_client.read();
+		process_message(tcp_client, msg_type, std::move(data));
 	}
 	catch (const ErrorCode& err) {
-		std::cout << "Unhandled error caught:\n"
-			<< "        code: " << err.code() << "\n"
-			<< "     message: " << err.what() << "\n";
+		std::cout << "process message: error processing message:\n"
+			<< " request type: "  << (uint16_t)msg_type << "\n"
+			<< "         code: " << err.code() << "\n"
+			<< "      message: " << err.what() << "\n";
+	}
+	catch (const std::exception& err) {
+		std::cout << "process message: unhandled exception caught:\n"
+			<< " request type: " << (uint16_t)msg_type << "\n"
+			<< "      message:" << err.what() << "\n";
 	}
 }
 
@@ -113,34 +90,6 @@ void on_connect(TcpClient &tcp_client, const error_code err)
 	std::cout << "Connected to server!\n";
 	std::cout << "Awaiting for message...\n";
 	tcp_client.read();
-
-	try {
-		std::cout << "Getting computer name...\n";
-		computer_name = get_computer_name();
-		tcp_client.write(MessageType::pc_info, computer_name.data(), computer_name.size());
-	}
-	catch (Win32Error &err) {
-		std::cout << "Failed to get computer name:\n"
-			<< " message: " << err.what() << "\n";
-	}
-
-	try {
-		std::cout << "Initializing graphics module...\n";
-		Graphics g;
-
-		std::cout << "Capturing Screen...\n";
-		auto screen_hbitmap = g.capture_screen();
-
-		std::cout << "Grabbing image data...\n";
-		auto bitmap = g.to_vector(screen_hbitmap.get());
-
-		tcp_client.write(MessageType::screen_capture, std::move(bitmap));
-	}
-	catch (const ErrorCode& err) {
-		std::cout << "Unhandled error caught:\n"
-			<< "        code: " << err.code() << "\n"
-			<< "     message: " << err.what() << "\n";
-	}
 }
 
 void connect_to_server()

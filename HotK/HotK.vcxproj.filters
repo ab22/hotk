@@ -45,6 +45,9 @@
     <ClCompile Include="net\tcp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="handlers\handlers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h">
@@ -78,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="net\containers\primitive_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="handlers\handlers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
