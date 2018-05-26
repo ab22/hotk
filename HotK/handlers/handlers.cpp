@@ -31,7 +31,7 @@ void hotk::handlers::get_machine_info(TcpClient& tcp_client)
 		catch (const Win32Error& err) {
 			std::cout << "Error getting computer name: "
 				<< "    code: " << err.code()
-				<< " message:" << err.what();
+				<< " message: " << err.what();
 
 			return;
 		}
