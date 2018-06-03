@@ -93,18 +93,11 @@ void on_connect(TcpClient &tcp_client, const error_code err)
 
 void connect_to_server()
 {
-	std::cout << "Connecting to server on port 8080..." << std::endl;
 	TcpClient tcp_client("127.0.0.1", "8080", on_connect, on_read, on_write);
 
+	std::cout << "Connecting to server on port 8080..." << std::endl;
 	tcp_client.connect();
-
-	std::thread io_service_thread = std::thread([&tcp_client]() {
-		std::cout << "Starting io ctx thread\n";
-		tcp_client.run();
-		std::cout << "Ending io ctx thread\n";
-	});
-
-	io_service_thread.join();
+	tcp_client.run();
 	tcp_client.close();
 }
 
