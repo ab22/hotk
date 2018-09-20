@@ -20,19 +20,22 @@ void handlers::process_message(TcpClient& tcp_client, const MessageType msg_type
 		break;
 
 	default:
-		std::cout << "Unrecognized message type received: " << (uint16_t)msg_type << "\n";
+		std::cout << "Unrecognized message type received: " << static_cast<uint16_t>(msg_type) << "\n";
 	}
 }
 
-std::string get_computer_name()
+std::vector<std::byte> get_computer_name()
 {
-	std::string fqdn;
-	DWORD       size = 0;
+	std::vector<std::byte> fqdn;
+	DWORD                  size = 0;
 
 	GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, NULL, &size);
-	fqdn.resize((std::size_t)size);
+	fqdn.resize(static_cast<std::size_t>(size));
 
-	auto err = GetComputerNameEx(COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified, fqdn.data(), &size);
+	auto err = GetComputerNameEx(
+		COMPUTER_NAME_FORMAT::ComputerNameDnsFullyQualified,
+		reinterpret_cast<char *>(fqdn.data()),
+		&size);
 
 	if (err == 0)
 		throw Win32Error(GetLastError(), "get_computer_name: GetComputerNameEx failed");
@@ -42,7 +45,7 @@ std::string get_computer_name()
 
 void handlers::get_machine_info(TcpClient& tcp_client)
 {
-	std::string machine_name;
+	std::vector<std::byte> machine_name;
 	std::cout << "Getting machine information...\n";
 
 	try {
@@ -56,12 +59,7 @@ void handlers::get_machine_info(TcpClient& tcp_client)
 	}
 
 	std::cout << "Sending machine name...\n";
-
-	std::vector<std::byte> buffer(
-		(std::byte *)machine_name.data(),
-		(std::byte *)(machine_name.data() + machine_name.size())
-	);
-	tcp_client.write(MessageType::MachineInfo, std::move(buffer));
+	tcp_client.write(MessageType::MachineInfo, std::move(machine_name));
 }
 
 void handlers::capture_screen(TcpClient& tcp_client)

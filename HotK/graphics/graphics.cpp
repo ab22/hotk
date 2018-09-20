@@ -32,28 +32,28 @@ std::unique_ptr<HBITMAP__, HBitmapDeleter> Graphics::capture_screen() const
 	// Get screen dimensions.
 	int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	if (width == 0)
-		throw Win32Error(GetLastError(), "capture screen error: failed to get screen width");
+		throw Win32Error(GetLastError(), "capture screen: failed to get screen width");
 
 	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	if (height == 0)
-		throw Win32Error(GetLastError(), "capture screen error: failed to get screen height");
+		throw Win32Error(GetLastError(), "capture screen: failed to get screen height");
 
 	// Create the Bitmap.
 	HBITMAP handler = CreateCompatibleBitmap(hdc.get(), width, height);
 	auto bitmap_handler = std::unique_ptr<HBITMAP__, HBitmapDeleter>(handler);
 	if (handler == nullptr)
-		throw Win32Error(GetLastError(), "capture screen error: CreateCompatibleBitmap failed");
+		throw Win32Error(GetLastError(), "capture screen: CreateCompatibleBitmap failed");
 
 	// Use the previously created device context with the bitmap.
 	auto result = SelectObject(hDest.get(), handler);
 	if (result == NULL || result == HGDI_ERROR)
-		throw Win32Error(GetLastError(), "capture screen error: SelectObject failed");
+		throw Win32Error(GetLastError(), "capture screen: SelectObject failed");
 
 	// Copy from the desktop device context to the bitmap device context
 	// call this once per 'frame'.
 	auto bb_result = BitBlt(hDest.get(), 0, 0, width, height, hdc.get(), 0, 0, SRCCOPY);
 	if (bb_result == NULL)
-		throw Win32Error(GetLastError(), "capture screen error: BitBlt failed");
+		throw Win32Error(GetLastError(), "capture screen: BitBlt failed");
 
 	return bitmap_handler;
 }
@@ -64,7 +64,7 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(const HBITMAP hbitmap) 
 	auto result = GetObject(hbitmap, sizeof(BITMAP), &bmp);
 
 	if (result == 0)
-		throw Win32Error(GetLastError(), "capture screen error: could not GetObject");
+		throw Win32Error(GetLastError(), "create bitmap info: could not GetObject");
 
 	auto bitmap_info = std::make_unique<BITMAPINFO>();
 	bitmap_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -97,14 +97,13 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
 	// copied will get push_back() to the end and the vector's size will
 	// increment by itself.
 	bmp.reserve(bitmap_header.bfSize);
-
 	std::copy(
-		(std::byte*)&bitmap_header,
-		(std::byte*)&bitmap_header + sizeof(BITMAPFILEHEADER),
+		reinterpret_cast<std::byte*>(&bitmap_header),
+		reinterpret_cast<std::byte*>(&bitmap_header) + sizeof(BITMAPFILEHEADER),
 		std::back_inserter(bmp));
 	std::copy(
-		(std::byte*)&bmi->bmiHeader,
-		(std::byte*)&bmi->bmiHeader + sizeof(BITMAPINFOHEADER),
+		reinterpret_cast<std::byte*>(&bmi->bmiHeader),
+		reinterpret_cast<std::byte*>(&bmi->bmiHeader) + sizeof(BITMAPINFOHEADER),
 		std::back_inserter(bmp));
 
 	// Unlike std::copy, GetDIBits expects a LPVOID to where the data should

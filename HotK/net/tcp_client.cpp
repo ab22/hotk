@@ -20,6 +20,7 @@ TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_
 	, _port(port)
 	, _socket(_io_service)
 	, _packet_size(0)
+	, _message_type(MessageType::None)
 	, on_connect(on_connect)
 	, on_read(on_read)
 	, on_write(on_write)
@@ -47,7 +48,7 @@ void TcpClient::read()
 	boost::asio::async_read(_socket, buffer(&_packet_size, sizeof(_packet_size)),
 		[this](const error_code err, const size_t) {
 			if (err) {
-				on_read(*this, err, (TcpClient::MessageType)0, std::move(_internal_read_buffer));
+				on_read(*this, err, TcpClient::MessageType::None, std::move(_internal_read_buffer));
 				return;
 			}
 
@@ -62,7 +63,7 @@ void TcpClient::read_msg_type(uint64_t packet_size)
 	boost::asio::async_read(_socket, buffer(&_message_type, sizeof(_message_type)),
 		[this, packet_size](const error_code err, const size_t) {
 			if (err) {
-				on_read(*this, err, (TcpClient::MessageType)0, std::move(_internal_read_buffer));
+				on_read(*this, err, TcpClient::MessageType::None, std::move(_internal_read_buffer));
 				return;
 			}
 

@@ -14,7 +14,7 @@ namespace hotk::net::containers {
 		}
 
 		const char* data() const noexcept override final {
-			return (const char*)_vec.data();
+			return reinterpret_cast<const char*>(_vec.data());
 		}
 
 		std::size_t size() const noexcept override final {

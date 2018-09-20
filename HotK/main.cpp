@@ -1,4 +1,3 @@
-#include <fstream>
 #include <iostream>
 #include <cstdint>
 #include <vector>
@@ -55,13 +54,13 @@ void on_read(TcpClient &tcp_client, const error_code err, const MessageType msg_
 	}
 	catch (const ErrorCode& err) {
 		std::cout << "process message:\n"
-			<< " request type: "  << (uint16_t)msg_type << "\n"
+			<< " request type: "  << static_cast<uint16_t>(msg_type) << "\n"
 			<< "         code: " << err.code() << "\n"
 			<< "      message: " << err.what() << "\n";
 	}
 	catch (const std::exception& err) {
 		std::cout << "process message: unhandled exception caught:\n"
-			<< " request type: " << (uint16_t)msg_type << "\n"
+			<< " request type: " << static_cast<uint16_t>(msg_type) << "\n"
 			<< "      message:" << err.what() << "\n";
 	}
 }
