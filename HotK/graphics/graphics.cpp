@@ -107,7 +107,7 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
 		std::back_inserter(bmp));
 
 	// Unlike std::copy, GetDIBits expects a LPVOID to where the data should
-	// be stored. In this case, GetDIBits will not get push_back() so the
+	// be stored. In this case, GetDIBits will not push_back() so the
 	// vector will never know that it's size changed, so we perform a
 	// resize() on the vector to tell it the new total size of it.
 	bmp.resize(bitmap_header.bfSize);
