@@ -25,8 +25,9 @@ TcpClient::TcpClient(const char* server, const char* port, OnConnectCallback on_
 	, on_read(on_read)
 	, on_write(on_write)
 {
-	tcp::resolver resolver(_io_service);
+	tcp::resolver        resolver(_io_service);
 	tcp::resolver::query query(_server, _port);
+
 	_endpoint = resolver.resolve(query);
 }
 
@@ -138,8 +139,8 @@ void TcpClient::write(TcpClient::MessageType msg_type, TcpClient::ByteVector&& d
 void TcpClient::perform_write()
 {
 	auto& next_message = _msg_queue.front();
-	const char* data = next_message.get()->data();
-	std::size_t size = next_message.get()->size();
+	const char* data   = next_message.get()->data();
+	std::size_t size   = next_message.get()->size();
 
 	boost::asio::async_write(_socket, buffer(data, size),
 		[this](error_code err, std::size_t length) {

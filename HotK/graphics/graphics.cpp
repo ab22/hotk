@@ -66,14 +66,14 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(const HBITMAP hbitmap) 
 	if (result == 0)
 		throw Win32Error(GetLastError(), "create bitmap info: could not GetObject");
 
-	auto bitmap_info = std::make_unique<BITMAPINFO>();
-	bitmap_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmap_info->bmiHeader.biWidth = bmp.bmWidth;
-	bitmap_info->bmiHeader.biHeight = bmp.bmHeight;
-	bitmap_info->bmiHeader.biPlanes = bmp.bmPlanes;
-	bitmap_info->bmiHeader.biBitCount = bmp.bmBitsPixel;
-	bitmap_info->bmiHeader.biCompression = BI_RGB;
-	bitmap_info->bmiHeader.biSizeImage = ((bmp.bmWidth * bmp.bmBitsPixel + 31) / 32) * 4 * bmp.bmHeight;
+	auto bitmap_info                      = std::make_unique<BITMAPINFO>();
+	bitmap_info->bmiHeader.biSize         = sizeof(BITMAPINFOHEADER);
+	bitmap_info->bmiHeader.biWidth        = bmp.bmWidth;
+	bitmap_info->bmiHeader.biHeight       = bmp.bmHeight;
+	bitmap_info->bmiHeader.biPlanes       = bmp.bmPlanes;
+	bitmap_info->bmiHeader.biBitCount     = bmp.bmBitsPixel;
+	bitmap_info->bmiHeader.biCompression  = BI_RGB;
+	bitmap_info->bmiHeader.biSizeImage    = ((bmp.bmWidth * bmp.bmBitsPixel + 31) / 32) * 4 * bmp.bmHeight;
 	bitmap_info->bmiHeader.biClrImportant = 0;
 
 	return bitmap_info;
@@ -84,11 +84,11 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
 	auto bmi = create_bitmap_info(hbitmap);
 
 	BITMAPFILEHEADER bitmap_header;
-	bitmap_header.bfType = 0x4D42;
-	bitmap_header.bfSize = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize + bmi->bmiHeader.biSizeImage;
+	bitmap_header.bfType      = 0x4D42;
+	bitmap_header.bfSize      = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize + bmi->bmiHeader.biSizeImage;
 	bitmap_header.bfReserved1 = 0;
 	bitmap_header.bfReserved2 = 0;
-	bitmap_header.bfOffBits = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize;
+	bitmap_header.bfOffBits   = sizeof(BITMAPFILEHEADER) + bmi->bmiHeader.biSize;
 
 	std::vector<std::byte> bmp;
 
