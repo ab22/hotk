@@ -162,7 +162,7 @@ void TcpClient::perform_write()
 
 void TcpClient::run()
 {
-	executor_work_guard<executor_type> _work_guard = make_work_guard(_io_service);
+	auto _work_guard = make_work_guard(_io_service);
 	_io_service.run();
 }
 
