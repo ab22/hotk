@@ -35,6 +35,10 @@ void TcpClient::connect()
 {
 	boost::asio::async_connect(_socket, _endpoint,
 		[this](const error_code err, const tcp::endpoint) {
+			// Remove all pending messages when starting a new connection.
+			if (!_msg_queue.empty())
+				_msg_queue.clear();
+
 			on_connect(*this, err);
 		}
 	);
@@ -168,8 +172,6 @@ void TcpClient::run()
 
 void TcpClient::close()
 {
-	// Remove all pending messages on disconnect/close.
-	_msg_queue.clear();
 	_socket.close();
 }
 
