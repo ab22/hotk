@@ -56,5 +56,6 @@ namespace hotk::net {
 		void stop();
 		void run();
 		void close();
+		void clear_msg_queue();
 	};
 }

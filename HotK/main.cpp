@@ -86,7 +86,8 @@ void on_connect(TcpClient &tcp_client, const error_code err)
 	reconnect_attempt = 0;
 
 	std::cout << "Connected to server!\n";
-	std::cout << "Awaiting for message...\n";
+	std::cout << "Awaiting for server requests...\n";
+	tcp_client.clear_msg_queue();
 	tcp_client.read();
 }
 
