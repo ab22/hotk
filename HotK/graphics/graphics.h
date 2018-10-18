@@ -25,5 +25,6 @@ namespace hotk::graphics {
 		Graphics();
 		std::unique_ptr<HBITMAP__, HBitmapDeleter> capture_screen() const;
 		std::vector<std::byte> to_vector(const HBITMAP hbitmap) const;
+		void to_png(const HBITMAP hbitmap) const;
 	};
 }

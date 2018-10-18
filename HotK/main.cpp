@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstddef>
 #include <thread>
+#include <fstream>
 
 #include <boost/asio.hpp>
 
@@ -101,9 +102,24 @@ void connect_to_server()
 	tcp_client.close();
 }
 
+using hotk::graphics::Graphics;
+
 int main()
 {
 	std::cout << "Starting program...\n";
+	Graphics g;
+
+	std::cout << "Capturing Screen...\n";
+	auto screen_hbitmap = g.capture_screen();
+	/*auto bmp = g.to_vector(screen_hbitmap.get());
+
+	std::ofstream file("screenie_test.bmp", std::ios::binary);
+	file.write(reinterpret_cast<char*>(bmp.data()), bmp.size());
+	file.close();*/
+
+	std::cout << "Saving as png...\n";
+	g.to_png(screen_hbitmap.get());
+	return 0;
 
 	try {
 		std::cout << "Establishing connection to server..." << "\n";

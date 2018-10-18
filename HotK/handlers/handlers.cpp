@@ -8,7 +8,7 @@ using handlers::Win32Error;
 using handlers::Graphics;
 
 
-void handlers::process_message(TcpClient& tcp_client, const MessageType msg_type, std::vector<std::byte>&& data)
+void handlers::process_message(TcpClient& tcp_client, const MessageType msg_type, std::vector<std::byte>&&)
 {
 	switch (msg_type) {
 	case MessageType::MachineInfo:
@@ -17,6 +17,11 @@ void handlers::process_message(TcpClient& tcp_client, const MessageType msg_type
 
 	case MessageType::ScreenCapture:
 		hotk::handlers::capture_screen(tcp_client);
+		break;
+
+	case MessageType::ServerShutdown:
+		std::cout << "Server is shutting down...\n"
+			<< "Should try to reconnect in a few seconds maybe??\n";
 		break;
 
 	default:

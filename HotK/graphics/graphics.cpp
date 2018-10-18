@@ -5,6 +5,10 @@
 #include <iterator>
 #include <memory>
 #include <vector>
+#include <fstream>
+
+#include <zlib.h>
+#include <png.h>
 
 using namespace hotk::graphics;
 using hotk::winutils::errors::Win32Error;
@@ -73,7 +77,8 @@ std::unique_ptr<BITMAPINFO> Graphics::create_bitmap_info(const HBITMAP hbitmap) 
 	bitmap_info->bmiHeader.biPlanes       = bmp.bmPlanes;
 	bitmap_info->bmiHeader.biBitCount     = bmp.bmBitsPixel;
 	bitmap_info->bmiHeader.biCompression  = BI_RGB;
-	bitmap_info->bmiHeader.biSizeImage    = ((bmp.bmWidth * bmp.bmBitsPixel + 31) / 32) * 4 * bmp.bmHeight;
+	// bitmap_info->bmiHeader.biSizeImage    = ((bmp.bmWidth * bmp.bmBitsPixel + 31) / 32) * 4 * bmp.bmHeight;
+	bitmap_info->bmiHeader.biSizeImage = bmp.bmWidth * bmp.bmHeight * 4;
 	bitmap_info->bmiHeader.biClrImportant = 0;
 
 	return bitmap_info;
@@ -124,4 +129,135 @@ std::vector<std::byte> Graphics::to_vector(const HBITMAP hbitmap) const
 		throw Win32Error(GetLastError(), "capture screen error: could not GetDIBits");
 
 	return bmp;
+}
+
+void write_row_callback(png_structp png_ptr, png_uint_32 row, int pass)
+{
+	if (png_ptr == NULL) {
+		std::cout << "WRITE_CALLBACK: png_ptr is null\n";
+		return;
+	}
+
+	std::cout << "--------------------------------\n";
+	std::cout << "row: " << row << "\n";
+	std::cout << "pass: " << pass << "\n";
+}
+
+void user_error_fn(png_structp png_ptr, png_const_charp error_msg)
+{
+	std::cout << "user error fn: " << error_msg << "\n";
+}
+
+void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
+{
+	std::cout << "user warning fn: " << warning_msg << "\n";
+}
+
+void user_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+	if (png_ptr == NULL)
+		return;
+
+	std::ofstream* output = reinterpret_cast<std::ofstream*>(png_get_io_ptr(png_ptr));
+
+	if (!output)
+		throw std::exception("No ofstream found when writing!");
+
+	size_t before = output->tellp();
+	output->write(reinterpret_cast<char*>(data), length);
+	size_t bytes_written = static_cast<size_t>(output->tellp()) - before;
+
+	if (bytes_written != length)
+		throw std::exception("Failed to write all bytes to file");
+}
+
+void user_flush_data(png_structp png_ptr)
+{
+	if (png_ptr == NULL)
+		return;
+
+	std::ofstream* output = reinterpret_cast<std::ofstream*>(png_get_io_ptr(png_ptr));
+
+	if (!output)
+		throw std::exception("No ofstream found when flushing!");
+
+	output->flush();
+}
+
+void Graphics::to_png(const HBITMAP hbitmap) const 
+{
+	auto bmi = create_bitmap_info(hbitmap);
+	auto data = to_vector(hbitmap);
+
+	// FILE *fp = NULL;
+	// fopen_s(&fp, "test.png", "wb"); 
+
+	// if (fp == NULL) {
+	//		throw std::exception("Could not open file test.png!");
+	// }
+
+	std::ofstream output("out.png", std::ios::binary);
+
+	if (!output) 
+		throw std::exception("Could not open file out.png!");
+	
+	png_voidp user_error_ptr = NULL;
+	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, user_error_ptr, user_error_fn, user_warning_fn);
+
+	if (!png_ptr)
+		throw std::exception("Could not create png write struct");
+
+	png_infop info_ptr = png_create_info_struct(png_ptr);
+
+	if (!info_ptr) {
+		png_destroy_write_struct(&png_ptr, (png_infopp)nullptr);
+		throw std::exception("Could not create png info struct");
+	}
+
+	if (setjmp(png_jmpbuf(png_ptr))) {
+		png_destroy_write_struct(&png_ptr, (png_infopp)nullptr);
+		throw std::exception("Error creating jump buf");
+	}
+
+	// png_init_io(png_ptr, fp);
+	png_set_write_fn(png_ptr, reinterpret_cast<void*>(&output), user_write_data, user_flush_data);
+	png_set_write_status_fn(png_ptr, write_row_callback);
+
+	png_set_IHDR(
+		png_ptr,
+		info_ptr,
+		bmi->bmiHeader.biWidth,
+		bmi->bmiHeader.biHeight,
+		8,
+		PNG_COLOR_TYPE_RGBA,
+		PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_DEFAULT,
+		PNG_FILTER_TYPE_DEFAULT);
+	png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
+	png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
+
+	constexpr size_t bitmap_header_offset = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+	auto rows = std::vector<png_byte *>();
+	png_byte* row_ptr = reinterpret_cast<png_byte*>(data.data() + bitmap_header_offset);
+	rows.reserve(bmi->bmiHeader.biHeight);
+
+	std::cout << "Bitmap starts at: " << static_cast<void*>(data.data()) << "\n";
+	std::cout << "Bitmap rows should start at: " << static_cast<void*>(row_ptr) << "\n";
+
+	for (LONG i = 0; i < bmi->bmiHeader.biHeight; i++) {
+		rows.insert(rows.begin(), row_ptr);
+
+		row_ptr += bmi->bmiHeader.biWidth * 4;
+	}
+
+	std::cout << "Rows calculated: " << rows.size() << "\n";
+
+	png_set_rows(png_ptr, info_ptr, rows.data());
+	png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, NULL);
+	png_write_end(png_ptr, info_ptr);
+
+	png_destroy_write_struct(&png_ptr, &info_ptr);
+	
+	//fclose(fp);
 }
