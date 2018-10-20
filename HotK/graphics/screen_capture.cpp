@@ -129,13 +129,6 @@ void ss_png_on_write_to_vec(png_structp png_ptr, png_bytep data, png_size_t leng
 		reinterpret_cast<std::byte*>(data), 
 		reinterpret_cast<std::byte*>(data) + length,
 		std::back_inserter(*output));
-
-	// size_t before = output->tellp();
-	// output->write(reinterpret_cast<char*>(data), length);
-	// size_t bytes_written = static_cast<size_t>(output->tellp()) - before;
-
-	// if (bytes_written != length)
-	// 	throw std::exception("Failed to write all bytes to file");
 }
 
 void ss_png_on_flush_to_vec(png_structp)
