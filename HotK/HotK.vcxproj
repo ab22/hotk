@@ -145,15 +145,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errors\errors.cpp" />
+    <ClCompile Include="graphics\screen_capture.cpp" />
+    <ClCompile Include="graphics\screen.cpp" />
     <ClCompile Include="handlers\handlers.cpp" />
     <ClCompile Include="net\tcp_client.cpp" />
     <ClCompile Include="winutils\errors.cpp" />
-    <ClCompile Include="graphics\graphics.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="winutils\deleters.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h" />
+    <ClInclude Include="graphics\screen_capture.h" />
+    <ClInclude Include="graphics\screen.h" />
     <ClInclude Include="handlers\handlers.h" />
     <ClInclude Include="net\containers\base_container.h" />
     <ClInclude Include="net\containers\message_containers.h" />
@@ -163,7 +166,6 @@
     <ClInclude Include="net\containers\vector_container.h" />
     <ClInclude Include="net\tcp_client.h" />
     <ClInclude Include="winutils\errors.h" />
-    <ClInclude Include="graphics\graphics.h" />
     <ClInclude Include="winutils\deleters.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

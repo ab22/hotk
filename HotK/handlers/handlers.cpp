@@ -1,11 +1,11 @@
 #include "handlers.h"
 
 namespace handlers = hotk::handlers;
+namespace screen   = hotk::graphics::screen;
 
 using handlers::TcpClient;
 using handlers::MessageType;
 using handlers::Win32Error;
-using handlers::Graphics;
 
 
 void handlers::process_message(TcpClient& tcp_client, const MessageType msg_type, std::vector<std::byte>&&)
@@ -69,14 +69,11 @@ void handlers::get_machine_info(TcpClient& tcp_client)
 
 void handlers::capture_screen(TcpClient& tcp_client)
 {
-	std::cout << "Initializing graphics module...\n";
-	Graphics g;
-
-	std::cout << "Capturing Screen...\n";
-	auto screen_hbitmap = g.capture_screen();
+	std::cout << "Capturing full screen...\n";
+	auto screenshot = screen::capture_full_screen();
 
 	std::cout << "Grabbing image data...\n";
-	auto bitmap = g.to_vector(screen_hbitmap.get());
+	auto image_data = screenshot->to_png();
 
-	tcp_client.write(MessageType::ScreenCapture, std::move(bitmap));
+	tcp_client.write(MessageType::ScreenCapture, std::move(image_data));
 }

@@ -33,9 +33,6 @@
     <ClCompile Include="errors\errors.cpp">
       <Filter>Source Files\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\graphics.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="winutils\deleters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,13 +45,16 @@
     <ClCompile Include="handlers\handlers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\screen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\screen_capture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="errors\errors.h">
       <Filter>Header Files\errors</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\graphics.h">
-      <Filter>Header Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="winutils\deleters.h">
       <Filter>Header Files</Filter>
@@ -84,6 +84,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="handlers\handlers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\screen_capture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
